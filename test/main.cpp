@@ -171,5 +171,5 @@ int main(int argc, char **argv) {
 	        return -1;
 	    }
 	*/
-	return 0;
+	return failed_tests > 0 ? 1 : 0;
 }
