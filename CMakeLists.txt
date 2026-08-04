@@ -249,7 +249,13 @@ if(NOT NO_MEDIA)
     list(APPEND TESTS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/test/rtcp_app.cpp)
 endif()
 
-set(TESTS_HEADERS 
+# Interposes libnice and glib symbols, so it needs dlfcn and an executable that
+# exports its symbols (see ENABLE_EXPORTS on datachannel-tests below).
+if(USE_NICE AND UNIX)
+    list(APPEND TESTS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/test/ice_teardown.cpp)
+endif()
+
+set(TESTS_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/test/test.hpp
 )
 
@@ -593,6 +599,14 @@ if(NOT NO_TESTS)
 
 	target_include_directories(datachannel-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 	target_link_libraries(datachannel-tests datachannel Threads::Threads)
+
+	if(USE_NICE AND UNIX)
+		# test/ice_teardown.cpp interposes libnice and glib symbols: exporting the
+		# executable's symbols makes the dynamic linker resolve them here first.
+		target_compile_definitions(datachannel-tests PRIVATE USE_NICE=1)
+		set_target_properties(datachannel-tests PROPERTIES ENABLE_EXPORTS ON)
+		target_link_libraries(datachannel-tests ${CMAKE_DL_LIBS})
+	endif()
 
 	# Benchmark
 	if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
