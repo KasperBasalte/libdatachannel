@@ -50,6 +50,9 @@ TestResult test_capi_track();
 TestResult test_websocket();
 TestResult test_websocketserver();
 TestResult test_capi_websocketserver();
+#if USE_NICE
+TestResult test_ice_teardown();
+#endif
 size_t benchmark(chrono::milliseconds duration);
 
 void test_benchmark() {
@@ -93,6 +96,9 @@ static const vector<Test> tests = {
     // Test("WebRTC TURN connectivity", test_turn_connectivity),
     Test("WebRTC negotiated DataChannel", test_negotiated),
     Test("WebRTC reliability mode", test_reliability),
+#if USE_NICE
+    Test("ICE teardown thread safety", test_ice_teardown),
+#endif
     Test("WebRTC simulcast SDP generation", test_simulcast_sdp_generation),
     Test("WebRTC simulcast SDP parsing", test_simulcast_sdp_parsing),
 #if RTC_ENABLE_MEDIA
@@ -167,5 +173,5 @@ int main(int argc, char **argv) {
 	        return -1;
 	    }
 	*/
-	return 0;
+	return failed_tests > 0 ? 1 : 0;
 }
